@@ -71,20 +71,38 @@ namespace SotsRestApi.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Students
+        //// POST: api/St
+        //[ResponseType(typeof(Student))]
+        //public IHttpActionResult PostStudent(Student student)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    db.Student.Add(student);
+        //    db.SaveChanges();
+
+        //    return CreatedAtRoute("DefaultApi", new { id = student.ID }, student);
+        //}
+
+        // POST: api/register
         [ResponseType(typeof(Student))]
-        public IHttpActionResult PostStudent(Student student)
-        {
-            if (!ModelState.IsValid)
+        public IHttpActionResult Register(Student student)
+        { 
+            Student st = db.Student.Find(student.ID);
+            if(st != null)
             {
-                return BadRequest(ModelState);
+                db.Student.Add(student);
+                db.SaveChanges();
+                return StatusCode(HttpStatusCode.Created);
             }
-
-            db.Student.Add(student);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = student.ID }, student);
+            else
+            {
+                return StatusCode(HttpStatusCode.Found);
+            }
         }
+
 
         // DELETE: api/Students/5
         [ResponseType(typeof(Student))]
