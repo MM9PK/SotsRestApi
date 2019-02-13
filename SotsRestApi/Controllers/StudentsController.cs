@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using SotsRestApi.DAL;
+using SotsRestApi.Models;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -8,8 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using SotsRestApi.DAL;
-using SotsRestApi.Models;
 
 namespace SotsRestApi.Controllers
 {
@@ -17,7 +14,7 @@ namespace SotsRestApi.Controllers
     {
         private SotsContext db = new SotsContext();
 
-        // GET: api/Students
+        [ActionName("list")]
         public IQueryable<Student> GetStudent()
         {
             return db.Student;
@@ -38,7 +35,8 @@ namespace SotsRestApi.Controllers
 
         // PUT: api/Students/5
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutStudent(int id, Student student)
+        [ActionName("register")]
+        public IHttpActionResult PostStudent(int id, Student student)
         {
             if (!ModelState.IsValid)
             {
@@ -71,35 +69,26 @@ namespace SotsRestApi.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        //// POST: api/St
-        //[ResponseType(typeof(Student))]
-        //public IHttpActionResult PostStudent(Student student)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    db.Student.Add(student);
-        //    db.SaveChanges();
-
-        //    return CreatedAtRoute("DefaultApi", new { id = student.ID }, student);
-        //}
-
-        // POST: api/register
         [ResponseType(typeof(Student))]
         public IHttpActionResult Register(Student student)
-        { 
-            Student st = db.Student.Find(student.ID);
-            if(st != null)
+        {
+            IQueryable<Student> query = from st in db.Student where st.AlbumNo == student.AlbumNo select st;
+            Student storedStudent = query.FirstOrDefault();
+            if (storedStudent != default)
             {
-                db.Student.Add(student);
-                db.SaveChanges();
-                return StatusCode(HttpStatusCode.Created);
+                throw new HttpResponseException(Request
+                    .CreateResponse(HttpStatusCode.BadRequest, "User with given album number already exists."));
+            }
+            if (!ModelState.IsValid)
+            {
+                throw new HttpResponseException(Request
+                    .CreateResponse(HttpStatusCode.BadRequest, ModelState));
             }
             else
             {
-                return StatusCode(HttpStatusCode.Found);
+                db.Student.Add(student);
+                db.SaveChanges();
+                return Ok(student);
             }
         }
 
