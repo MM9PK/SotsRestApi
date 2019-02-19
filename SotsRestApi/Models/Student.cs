@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SotsRestApi.Models
 {
@@ -12,8 +13,10 @@ namespace SotsRestApi.Models
         [Required]
         public string LastName { get; set; }
         [Required]
+        [Index(IsUnique = true)]
         public int AlbumNo { get; set; }
         [Required]
+        [Index(IsUnique = true)]
         public string Login { get; set; }
         [Required]
         public string Password { get; set; }

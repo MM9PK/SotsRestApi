@@ -1,7 +1,5 @@
 ﻿using SotsRestApi.DAL;
 using SotsRestApi.Models;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -33,53 +31,17 @@ namespace SotsRestApi.Controllers
             return Ok(student);
         }
 
-        // PUT: api/Students/5
-        [ResponseType(typeof(void))]
-        [ActionName("register")]
-        public IHttpActionResult PostStudent(int id, Student student)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != student.ID)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(student).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StudentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return StatusCode(HttpStatusCode.NoContent);
-        }
-
         [ResponseType(typeof(Student))]
+        [ActionName("register")]
         public IHttpActionResult Register(Student student)
         {
-            IQueryable<Student> query = from st in db.Student where st.AlbumNo == student.AlbumNo select st;
-            Student storedStudent = query.FirstOrDefault();
+            Student storedStudent = db.Student.Where(s => s.AlbumNo == student.AlbumNo || s.Login == student.Login).FirstOrDefault();
             if (storedStudent != default)
             {
                 throw new HttpResponseException(Request
-                    .CreateResponse(HttpStatusCode.BadRequest, "User with given album number already exists."));
+                    .CreateResponse(HttpStatusCode.BadRequest, "User already exists."));
             }
-            if (!ModelState.IsValid)
+            else if (!ModelState.IsValid)
             {
                 throw new HttpResponseException(Request
                     .CreateResponse(HttpStatusCode.BadRequest, ModelState));
@@ -92,21 +54,29 @@ namespace SotsRestApi.Controllers
             }
         }
 
-
-        // DELETE: api/Students/5
         [ResponseType(typeof(Student))]
-        public IHttpActionResult DeleteStudent(int id)
+        [ActionName("login")]
+        public IHttpActionResult Login(Student student)
         {
-            Student student = db.Student.Find(id);
-            if (student == null)
+            Student storedStudent = db.Student.Where(s => s.Login == student.Login).FirstOrDefault();
+            if (storedStudent != default)
             {
-                return NotFound();
+                storedStudent = db.Student.Where(s => s.Login == student.Login && s.Password == student.Password).FirstOrDefault();
+                if (storedStudent != default)
+                {
+                    return Ok(storedStudent);
+                }
+                else
+                {
+                    throw new HttpResponseException(Request
+                        .CreateResponse(HttpStatusCode.BadRequest, "Invalid user or password."));
+                }
             }
-
-            db.Student.Remove(student);
-            db.SaveChanges();
-
-            return Ok(student);
+            else
+            {
+                throw new HttpResponseException(Request
+                    .CreateResponse(HttpStatusCode.BadRequest, "User with given login does not exist."));
+            }
         }
 
         protected override void Dispose(bool disposing)

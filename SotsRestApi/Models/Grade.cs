@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace SotsRestApi.Models
+﻿namespace SotsRestApi.Models
 {
     public class Grade
     {
