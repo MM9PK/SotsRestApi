@@ -7,6 +7,7 @@ namespace SotsRestApi.Models
 {
     public class Student
     {
+        [Index(IsUnique = true)]
         public int ID { get; set; }
         [Required]
         public string FirstName { get; set; }

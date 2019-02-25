@@ -1,9 +1,6 @@
 ﻿using SotsRestApi.DAL;
 using SotsRestApi.Models;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
 
@@ -13,24 +10,21 @@ namespace SotsRestApi.Controllers
     {
         private SotsContext db = new SotsContext();
 
-        [ResponseType(typeof(Grade))]
         [ActionName("list")]
-        public IHttpActionResult StudentGrades(List<Class> classesList)
+        public IQueryable GetStudentGrades(int studentID, int semesterID)
         {
-            if (classesList.Any())
-            {
-                List<Grade> storedGrades = new List<Grade>();
-                foreach (Class @class in classesList)
-                {
-                    storedGrades.Add(db.Grade.Where(g => g.ClassID == @class.ID).FirstOrDefault());
-                }
-                return Ok(storedGrades);
-            }
-            else
-            {
-                throw new HttpResponseException(Request
-                    .CreateResponse(HttpStatusCode.BadRequest, "Classes list cannot be empty."));
-            }
+            var studentGrades = from c in db.Class
+                                join g in db.Grade
+                                on c.ID equals g.ClassID
+                                where c.SemesterID == semesterID
+                                && g.StudentID == studentID
+                                select new
+                                {
+                                    ClassName = c.Name,
+                                    GradeValue = g.Value,
+                                    c.ECTSValue
+                                };
+            return studentGrades;
         }
 
         protected override void Dispose(bool disposing)
