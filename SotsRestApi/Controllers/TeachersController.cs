@@ -1,6 +1,7 @@
 ﻿using SotsRestApi.DAL;
 using SotsRestApi.Models;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -42,9 +43,8 @@ namespace SotsRestApi.Controllers
         public IQueryable GetStudents(int teacherID)
         {
             var students = (from student in db.Student
-                            join course in db.Course on student.CourseID equals course.ID
-                            join cla in db.Class on course.ID equals cla.CourseID
-                            join grade in db.Grade on cla.ID equals grade.ClassID
+                            join grade in db.Grade on student.ID equals grade.StudentID
+                            join cla in db.Class on grade.ClassID equals cla.ID
                             where cla.TeacherID == teacherID
                             select new
                             {
@@ -54,15 +54,16 @@ namespace SotsRestApi.Controllers
                                 student.AlbumNo,
                                 cla.Name,
                                 grade.Value
-                            }).GroupBy(g => g.ID);
+                            }).OrderBy(g => g.Name);
             return students;
         }
         [ActionName("updateGrade")]
-        public void UpdateGrade(int gradeID, int gradeValue)
+        public IHttpActionResult GetUpdateGrade(int gradeID, string gradeValue)
         {
             Grade grade = db.Grade.Where(g => g.ID == gradeID).FirstOrDefault();
-            grade.Value = gradeValue;
+            grade.Value = float.Parse(gradeValue, CultureInfo.InvariantCulture);
             db.SaveChanges();
+            return Ok();
         }
 
         protected override void Dispose(bool disposing)

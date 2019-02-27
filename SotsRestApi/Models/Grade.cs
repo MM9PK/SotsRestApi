@@ -10,7 +10,6 @@ namespace SotsRestApi.Models
         public float Value { get; set; }
 
         public int CourseID { get; set; }
-        public int TeacherID { get; set; }
         public int StudentID { get; set; }
         public int ClassID { get; set; }
     }
